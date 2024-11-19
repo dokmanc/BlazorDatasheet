@@ -1,4 +1,6 @@
 @page "/"
+
+
 @using BlazorDatasheet.DataStructures.Geometry
 @using BlazorDatasheet.Core.Data
 @using BlazorDatasheet.Core.Formats
@@ -8,6 +10,10 @@
 @using BlazorDatasheet.Core.Commands.Data
 @using BlazorDatasheet.Events
 @using BlazorDatasheet.KeyboardInput
+@using Microsoft.JSInterop
+@using BlazorDatasheet.Core.Events;
+
+@inject IJSRuntime JS
 
 <PageTitle>Index</PageTitle>
 
@@ -15,16 +21,15 @@
     Blazor DataSheet is an excel-like editor for cellular values. Below shows some of the features of the data sheet. Sample code is available on <a href="https://github.com/anmcgrath/BlazorDatasheet">GitHub</a>
 </p>
 
-<div style="overflow-y: auto; overflow-x: scroll; max-height: 500px; max-width: 800px;">
-    <Datasheet
-        @ref="_datasheet"
-        Theme="@Theme"
-        Sheet="Sheet"
-        Virtualise="true"
-        ShowFormulaDependents="@ShowFormulaDependents"
-        ShowColHeadings="@ShowColHeadings"
-        ShowRowHeadings="@ShowRowHeadings"
-        StickyHeadings="@StickyHeadings">
+<div id="datasheet-parent" style="overflow-y: auto; overflow-x: scroll; max-height: 500px; max-width:@(MaxWidth)px; border:solid; border-width:1px;">
+    <Datasheet @ref="_datasheet"
+                Theme="@Theme"
+                Sheet="Sheet"
+                Virtualise="true"
+                ShowFormulaDependents="@ShowFormulaDependents"
+                ShowColHeadings="@ShowColHeadings"
+                ShowRowHeadings="@ShowRowHeadings"                
+                StickyHeadings="@StickyHeadings">
     </Datasheet>
 </div>
 
@@ -73,12 +78,31 @@
     <label for="show-formula-dependents">Show formula dependents</label>
 </div>
 
+
+
+
 @code {
 
     private Sheet Sheet;
     private string Theme => IsDarkMode ? "dark" : "default";
     private bool _isDarkMode;
     private string FilterValue { get; set; }
+    private int MaxWidth { get; set; } = 800;
+
+    [JSInvokable]
+    public void UpdateMaxWidth(int width, bool isSandwichMenuVisible)
+    {
+        if (isSandwichMenuVisible)
+        {
+            MaxWidth = width - 40;
+        }
+        else
+        {
+            MaxWidth = width - 330;
+        }
+        
+        StateHasChanged();
+    }
 
     private bool StickyHeadings
     {
@@ -272,10 +296,39 @@
         Sheet.Rows.SetHeadings(7, 7, "Custom Row");
         Sheet.Columns.SetHeadings(5, 5, "Custom Col");
 
+        Sheet.Cells.CellsChanged += OnCellsChanged;
+       
+
+        // Sheet.Columns.SetSize(2, 0); 
+
+        Sheet.Columns.SetSize(200, 1);
+        Sheet.Columns.SetSize(400, 2);
+
         Sheet.EndBatchUpdates();
         Sheet.Commands.ResumeHistory();
         Sheet.ScreenUpdating = true;
     }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("setResizeHandler", DotNetObjectReference.Create(this));
+        }
+    }
+
+    private void OnCellsChanged(object sender, CellDataChangedEventArgs e)
+    {
+
+        
+
+        foreach (var cellPosition in e.Positions)
+        {
+            string value = Sheet.Cells.GetValue(cellPosition.row, cellPosition.col).ToString();
+            System.Diagnostics.Debug.WriteLine(value);
+        }
+    }
+
 
     private void SetBorder(IReadOnlyList<IRegion> selectionRegions, int width, string color)
     {
