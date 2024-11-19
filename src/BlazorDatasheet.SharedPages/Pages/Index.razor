@@ -23,13 +23,13 @@
 
 <div id="datasheet-parent" style="overflow-y: auto; overflow-x: scroll; max-height: 500px; max-width:@(MaxWidth)px; border:solid; border-width:1px;">
     <Datasheet @ref="_datasheet"
-                Theme="@Theme"
-                Sheet="Sheet"
-                Virtualise="true"
-                ShowFormulaDependents="@ShowFormulaDependents"
-                ShowColHeadings="@ShowColHeadings"
-                ShowRowHeadings="@ShowRowHeadings"                
-                StickyHeadings="@StickyHeadings">
+    Theme="@Theme"
+    Sheet="Sheet"
+    Virtualise="true"
+    ShowFormulaDependents="@ShowFormulaDependents"
+    ShowColHeadings="@ShowColHeadings"
+    ShowRowHeadings="@ShowRowHeadings"                
+    StickyHeadings="@StickyHeadings">
     </Datasheet>
 </div>
 
@@ -100,7 +100,7 @@
         {
             MaxWidth = width - 330;
         }
-        
+
         StateHasChanged();
     }
 
@@ -297,12 +297,11 @@
         Sheet.Columns.SetHeadings(5, 5, "Custom Col");
 
         Sheet.Cells.CellsChanged += OnCellsChanged;
-       
 
-        // Sheet.Columns.SetSize(2, 0); 
 
-        Sheet.Columns.SetSize(200, 1);
-        Sheet.Columns.SetSize(400, 2);
+        // Sheet.Columns.SetSize(4, 200); //row first, then size, dummy
+        // Sheet.Columns.SetSize(5, 400);
+        
 
         Sheet.EndBatchUpdates();
         Sheet.Commands.ResumeHistory();
